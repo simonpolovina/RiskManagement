@@ -46,7 +46,34 @@ modules:
     - name: risk-management-xsuaa
     - name: risk-management-db
 
+ # --------------------  APPROUTER -----------------------------
+ - name: risk-management-approuter
+ # ------------------------------------------------------------
+   type: nodejs
+   path: approuter
+   requires:
+     - name: risk-management-xsuaa
+     - name: srv-api
+       group: destinations
+       properties:
+         forwardAuthToken: true
+         strictSSL: true
+         name: srv-binding
+         url: "~{srv-url}"
+   build-parameters:
+     requires:
+       - name: risk-management-app
+         artifacts:
+           - ./*
+         target-path: resources
 
+# ------------------- UI ------------------------
+ - name: risk-management-app
+# ------------------------------------------------------------
+   type: html5
+   path: app
+   build-parameters:
+     supported-platforms: []
 
 resources:
  # services extracted from CAP configuration
@@ -59,6 +86,17 @@ resources:
      service: xsuaa
      service-plan: application  
      path: ./xs-security.json
+     config:
+      xsappname: 'risk-management-${space}'
+      role-collections:
+        - name: 'RiskManager-${space}'
+          description: Manage Risks
+          role-template-references:
+          - $XSAPPNAME.RiskManager
+        - name: 'RiskViewer-${space}'
+          description: View Risks
+          role-template-references:
+          - $XSAPPNAME.RiskViewer
 # ------------------------------------------------------------
  - name: risk-management-db
 # ------------------------------------------------------------
